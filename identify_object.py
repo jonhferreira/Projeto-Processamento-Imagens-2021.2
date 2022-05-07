@@ -63,7 +63,7 @@ def saveImage(tipo_img, larg, alt, imagem):
     tam = str(larg)+" "+str(alt)+"\n"
     cabecalho = [tipo_img, tam]
 
-    arq_imagem = open('Figuras/'+nome_img, 'w')
+    arq_imagem = open('result/'+nome_img, 'w')
 
     # escrever cabeçalho
     for conteudo in cabecalho:
@@ -75,3 +75,92 @@ def saveImage(tipo_img, larg, alt, imagem):
             arq_imagem.write(pixel)
 
     arq_imagem.close()
+
+# funcao que dilata a imagem
+
+
+def dilateEffect(imagem, larg, alt, elem_estru):
+
+    # informacoes do elemento estruturante
+    larg_elem = len(elem_estru[0])
+    alt_elem = len(elem_estru)
+    centro = int(alt_elem/2)
+
+    img_res = imagem.copy()
+
+    for i in range(1, alt-centro):
+        for j in range(1, larg-centro):
+            ver = False
+            for ie in range(alt_elem):
+                for je in range(larg_elem):
+                    n_i = (i-1) + ie
+                    n_j = (j-1) + je
+
+                    if (elem_estru[ie][je] != 0) and (imagem[n_i][n_j] == elem_estru[ie][je]):
+                        img_res[i-1 + centro][j-1 +
+                                              centro] = elem_estru[centro][centro]
+                        ver = True
+                        break
+                if ver:
+                    break
+
+    return img_res
+
+# realiza a operacao de subtração entre duas imagens
+def subtractionEffect(imagem1, imagem2):
+    img_res = abs(imagem1 - imagem2)
+
+    return img_res
+
+# identifica as bordas dos objetos na imagem
+def identifyBorder(img_name):
+    tipo_img, larg, alt, imagem = getImageP1(img_name)
+
+    imagem_copy = imagem.copy()
+    elem_estru = np.array([[0, 1, 0], [0, 1, 0], [0, 0, 0]])
+
+    imagem_dilatada = dilateEffect(imagem_copy, larg, alt, elem_estru)
+    imagem_sub = subtractionEffect(imagem_dilatada, imagem_copy)
+
+    saveImage(tipo_img, larg, alt, imagem_sub)
+
+# identifica a quantidade de poligonos presentes na imagem
+def identifyPolygon(img_name):
+    tipo_img, larg, alt, imagem = getImageP1(img_name)
+
+    coord = []
+    for i in range(alt):
+        for j in range(larg):
+            if imagem[i][j] == 1:
+                coord.append([i,j])
+    coord.sort()
+    retas = [[]]
+    n_retas = 0
+    
+    for c in range(len(coord)):
+        i,j = coord[c]
+        if (([i,j+1] in coord) or ([i+1,j+1] in coord) or ([i+1, j-1] in coord) or ([i-1, j-1] in coord) or ([i-1, j+1] in coord)):
+            retas[n_retas].append([i,j])
+        else:
+            retas[n_retas].append([i,j])
+            retas.append([])
+            n_retas += 1
+
+    count = 0
+    polygon = []
+    x = []
+    y = []
+    for reta in retas:
+        if len(reta) > 10:
+            polygon.append(reta)
+            y.append(reta[0])
+            x.append(reta[1])
+            count += 1
+
+    print(count)
+    
+    
+
+
+
+
