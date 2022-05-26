@@ -119,6 +119,7 @@ def identifyBorder(name_img):
     image_sub = subtractionEffect(image_dilated, image_copy)
 
     saveImage(type_img, larg, alt, image_sub)
+      
 
 # Identifica a quantidade de polígonos presentes na imagem
 def identifyPolygon(img_name):
@@ -137,6 +138,7 @@ def identifyPolygon(img_name):
     # Ordena as coordenadas
     coord.sort()
     coord_copy = coord.copy()
+    
     # Matriz de retas
     lines = [[]]
     num_lines = 0
@@ -195,9 +197,11 @@ def identifyPolygon(img_name):
 
     # Lista de polígonos
     polygons = []
-
+    buracos = []
+    
     # Coordenadas
     cord_retas = []
+    cord_buraco = []
     
     for line in lines:
         if len(line) > 10:
@@ -207,15 +211,59 @@ def identifyPolygon(img_name):
             for ponto in line:
                 cor[0].append(648-ponto[0])
                 cor[1].append(ponto[1])
+
             cord_retas.append(cor)
             count += 1
+               
+        elif len(line) > 6:
+            buracos.append(line)
 
+    removidos = []
+    id_pol = 1
+
+    # numero de poligonos com buracos
+    n_pol_buracos = 0
+    
+    for polygon in polygons:
+        n_buracos = 0
+        
+        meio = int(len(polygon)/2)
+        
+        for buraco in buracos:
+            isIn = (polygon[0][1] < buraco[0][1] < polygon[-1][1]) and (polygon[meio][0] > buraco[0][0])
+            if (isIn and not(buraco in removidos)):
+                
+                n_buracos += 1
+                removidos.append(buraco)
+
+                cor = [[], []]
+            
+                for ponto in buraco:
+                    cor[0].append(648-ponto[0])
+                    cor[1].append(ponto[1])
+
+                    cord_buraco.append(cor)
+
+        if n_buracos > 0:
+            n_pol_buracos += 1
+            
+        print("Poligono "+ str(id_pol) + "- n° de buracos: "+ str(n_buracos))
+
+        id_pol += 1
+    
     for y, x in cord_retas:
         plt.plot(x,y)
 
-    plt.savefig(img_name[:-4]+"_grafico"+".png",dpi=300)
+    for y,x in cord_buraco:
+        plt.plot(x,y)
+
+    plt.savefig(img_name[:-4]+"_grafico_2"+".png",dpi=300)
 
     plt.close()
 
-    print(count)
+    print("---------------------- Geral --------------------------")
+    print("N° de poligonos com buracos: " + str(n_pol_buracos))
+    print("N° de poligonos sem buracos: " + str(count - n_pol_buracos))
+    print("Total de poligonos: " + str(count) )
+    print("Total de buracos: " + str(len(buracos)))
     
