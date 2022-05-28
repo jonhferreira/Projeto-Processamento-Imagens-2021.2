@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-
+import os
 
 # Função para limpar comentários
 def clearComment(matrix_img):
@@ -108,7 +108,7 @@ def subtractionEffect(image1, image2):
     img_res = abs(image1 - image2)
     return img_res
 
-# Identifica as bordas dos objetos na imagem
+# Identifica as bordas inferiores dos objetos na imagem
 def identifyBorder(name_img):
     type_img, larg, alt, image = getImageP1(name_img)
 
@@ -119,13 +119,13 @@ def identifyBorder(name_img):
     image_sub = subtractionEffect(image_dilated, image_copy)
 
     saveImage(type_img, larg, alt, image_sub)
+
+    return (type_img, larg, alt, image_sub)
       
 
 # Identifica a quantidade de polígonos presentes na imagem
-def identifyPolygon(img_name):
-    tipo_img, larg, alt, image = getImageP1(img_name)
+def identifyPolygon(tipo_img, larg, alt, image, img_name):
     
-
     # Percorre as coordenadas salvando os pixels pretos formando as linhas
     coord = []
     for i in range(alt):
@@ -142,7 +142,8 @@ def identifyPolygon(img_name):
     # Matriz de retas
     lines = [[]]
     num_lines = 0
-       
+
+    # identificacao de retas continuas dos poligonos   
     while len(coord_copy) != 0:
         i, j = coord_copy[0]
 
@@ -195,7 +196,7 @@ def identifyPolygon(img_name):
     # Contagem de polígonos
     count = 0
 
-    # Lista de polígonos
+    # Lista de polígonos e buracos
     polygons = []
     buracos = []
     
@@ -257,8 +258,10 @@ def identifyPolygon(img_name):
     for y,x in cord_buraco:
         plt.plot(x,y)
 
-    plt.savefig(img_name[:-4]+"_grafico_2"+".png",dpi=300)
-
+    graph_name = img_name[10:]
+    graph_name = "./../results"+graph_name[:-4]+"_grafico"+".png"
+    
+    plt.savefig(graph_name, dpi=300)
     plt.close()
 
     print("---------------------- Geral --------------------------")
@@ -266,4 +269,18 @@ def identifyPolygon(img_name):
     print("N° de poligonos sem buracos: " + str(count - n_pol_buracos))
     print("Total de poligonos: " + str(count) )
     print("Total de buracos: " + str(len(buracos)))
+    print()
+
+# main
+path_images = "./../tests/"
+walk = list(os.walk(path_images))
+_,_,files = walk[0]
+
+for file in files:
+    print("Imagem " + str(file))
     
+    img_name = path_images + file
+    
+    tipo_img, larg, alt, image = identifyBorder(img_name)
+    identifyPolygon(tipo_img, larg, alt, image, img_name)
+  
